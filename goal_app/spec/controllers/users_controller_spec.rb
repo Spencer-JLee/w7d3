@@ -1,7 +1,7 @@
 require 'rails_helper'
 
 RSpec.describe UsersController, type: :controller do
-  subject (:randy) {User.create!(username: 'Randy', password: "password")}
+  subject (:randy) {User.create!(username: 'randy', password: "password")}
 
   describe "GET #new" do
     it "renders the new users template" do
@@ -59,7 +59,32 @@ RSpec.describe UsersController, type: :controller do
       end
 
       it "redirects to the login page" do
-        get :show. params: {id: randy.id}
+        get :show, params: {id: randy.id}
+        expect(response).to redirect_to(new_session_url)
+      end
+    end
+  end
+
+  describe "GET #index" do
+    context "when logged in" do
+      before do
+        allow(controller).to receive(:current_user) {randy}
+      end
+      it "renders the index page of all of the users" do
+        get :index
+        fetched_users = controller.instance_variable_get(:@users)
+        expect(fetched_users).to eq(User.all)
+        expect(response).to render_template(:index)
+      end
+    end
+
+    context "when logged out" do
+      before do
+        allow(controller).to receive(:current_user){ nil}
+      end
+
+      it "redirects to the login page" do
+        get :index
         expect(response).to redirect_to(new_session_url)
       end
     end
